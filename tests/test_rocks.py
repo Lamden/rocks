@@ -13,95 +13,94 @@ async def stop_server(s, timeout):
 
 
 class TestRocksServer(TestCase):
+    def setUp(self):
+        self.c = RocksDBClient()
+        self.c.flush()
+
+    def tearDown(self):
+        self.c.flush()
+
     def test_flush_works(self):
-        c = RocksDBClient()
 
-        c.set(b'test', b'123')
-        c.set(b'x', b'123')
-        c.set(b'h', b'123')
-        c.set(b'1', b'123')
-        c.set(b'3', b'123')
-        c.set(b'5', b'123')
-        c.set(b'g', b'123')
-        c.set(b'v', b'123')
-        c.set(b's', b'123')
-        c.set(b'z', b'123')
+        self.c.set(b'test', b'123')
+        self.c.set(b'x', b'123')
+        self.c.set(b'h', b'123')
+        self.c.set(b'1', b'123')
+        self.c.set(b'3', b'123')
+        self.c.set(b'5', b'123')
+        self.c.set(b'g', b'123')
+        self.c.set(b'v', b'123')
+        self.c.set(b's', b'123')
+        self.c.set(b'z', b'123')
 
-        self.assertEqual(c.get(b'test'), b'123')
+        self.assertEqual(self.c.get(b'test'), b'123')
 
-        c.flush()
+        self.c.flush()
 
-        self.assertIsNone(c.get(b'test'))
-        self.assertIsNone(c.get(b'x'))
-        self.assertIsNone(c.get(b'h'))
-        self.assertIsNone(c.get(b'1'))
-        self.assertIsNone(c.get(b'3'))
-        self.assertIsNone(c.get(b'5'))
-        self.assertIsNone(c.get(b'g'))
-        self.assertIsNone(c.get(b'v'))
-        self.assertIsNone(c.get(b's'))
-        self.assertIsNone(c.get(b'z'))
-
-    def test_flush(self):
-        c = RocksDBClient()
-        c.flush()
-        c.flush()
-        c.flush()
-        c.flush()
-        c.flush()
-
+        self.assertIsNone(self.c.get(b'test'))
+        self.assertIsNone(self.c.get(b'x'))
+        self.assertIsNone(self.c.get(b'h'))
+        self.assertIsNone(self.c.get(b'1'))
+        self.assertIsNone(self.c.get(b'3'))
+        self.assertIsNone(self.c.get(b'5'))
+        self.assertIsNone(self.c.get(b'g'))
+        self.assertIsNone(self.c.get(b'v'))
+        self.assertIsNone(self.c.get(b's'))
+        self.assertIsNone(self.c.get(b'z'))
 
     def test_set_key_succeeds(self):
-        c = RocksDBClient()
-
-        r = c.set(b'test', b'123')
+        r = self.c.set(b'test', b'123')
         self.assertEqual(r, constants.OK_RESPONSE)
 
     def test_get_succeeds(self):
-        c = RocksDBClient()
-
-        r = c.set(b'test', b'123')
+        r = self.c.set(b'test', b'123')
         self.assertEqual(r, constants.OK_RESPONSE)
 
-        r = c.get(b'test')
+        r = self.c.get(b'test')
         self.assertEqual(r, b'123')
 
     def test_delete_succeeds(self):
-        c = RocksDBClient()
-
-        r = c.set(b'test', b'123')
+        r = self.c.set(b'test', b'123')
         self.assertEqual(r, constants.OK_RESPONSE)
 
-        r = c.delete(b'test')
+        r = self.c.delete(b'test')
         self.assertEqual(r, constants.OK_RESPONSE)
 
-        r = c.get(b'test')
-        self.assertEqual(r, b'')
+        r = self.c.get(b'test')
+        self.assertEqual(r, None)
 
     def test_seek_succeeds(self):
-        c = RocksDBClient()
-
-        r = c.seek(b'123')
+        r = self.c.seek(b'123')
         self.assertEqual(r, constants.OK_RESPONSE)
 
     def test_seek_and_next_succeeds_once(self):
-        c = RocksDBClient()
+        self.c.set(b'test1', b'123')
+        self.c.set(b'test2', b'12')
+        self.c.set(b'test3', b'1')
+        self.c.set(b'test4', b'124')
+        self.c.set(b'test5', b'125')
 
-        c.set(b'test1', b'123')
-        c.set(b'test2', b'12')
-        c.set(b'test3', b'1')
-        c.set(b'test4', b'124')
-        c.set(b'test5', b'125')
+        self.c.seek(b'test1')
 
-        #c.seek(b'test')
+        self.assertEqual(self.c.next(), b'test1')
+        self.assertEqual(self.c.next(), b'test2')
+        self.assertEqual(self.c.next(), b'test3')
+        self.assertEqual(self.c.next(), b'test4')
+        self.assertEqual(self.c.next(), b'test5')
 
-        print(c.next())
-        print(c.next())
-        print(c.next())
-        print(c.next())
-        print(c.next())
-        print(c.next())
-
+    def test_seek_all(self):
+        self.c.seek(b'')
+        print(self.c.next())
+        print(self.c.next())
+        print(self.c.next())
+        print(self.c.next())
+        print(self.c.next())
+        print(self.c.next())
+        print(self.c.next())
+        print(self.c.next())
+        print(self.c.next())
+        print(self.c.next())
+        print(self.c.next())
 
 class TestMultipartServer(TestCase):
     def setUp(self):

@@ -10,7 +10,7 @@ async def get(socket_id: services.SocketStruct,
               timeout=500,
               linger=2000,
               retries=10,
-              dealer=True):
+              dealer=False):
 
     if retries < 0:
         return None
