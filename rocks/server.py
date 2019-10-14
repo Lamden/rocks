@@ -50,21 +50,20 @@ class RocksDBServer(MultiPartAsyncInbox):
                          linger=linger,
                          poll_timeout=poll_timeout)
 
+        self.current_iterator = self.db.iterkeys()
+        self.current_iterator.seek_to_first()
+
     async def handle_msg(self, _id, msg):
-        print(_id, msg)
         command = msg[0]
+        print(f'got {msg}')
 
-        print(command == constants.GET_COMMAND)
-
+        # BASIC COMMANDS #
         if command == constants.GET_COMMAND:
-            v = self.db.get(msg[1])
-            if v is None:
-                v = b''
+            v = self.get(msg[1])
             await super().return_msg(_id, v)
 
         elif command == constants.SET_COMMAND:
             k, v = msg[1:]
-            print(f'setting {k} to {v}')
             self.db.put(k, v)
             await super().return_msg(_id, constants.OK_RESPONSE)
 
@@ -72,5 +71,41 @@ class RocksDBServer(MultiPartAsyncInbox):
             self.db.delete(msg[1])
             await super().return_msg(_id, constants.OK_RESPONSE)
 
+        # # #
+
+        # ITERATOR COMMANDS #
+        elif command == constants.SEEK_ITER_COMMAND:
+            p = msg[1]
+            self.current_iterator.seek(p)
+            await super().return_msg(_id, constants.OK_RESPONSE)
+
+        elif command == constants.NEXT_COMMAND:
+            try:
+                k = next(self.current_iterator)
+                await super().return_msg(_id, k)
+            except StopIteration:
+                await super().return_msg(_id, constants.STOP_ITER_RESPONSE)
+
+        # # #
+
+        elif command == constants.FLUSH_COMMAND:
+            print('flush!')
+            self.flush()
+            await super().return_msg(_id, constants.OK_RESPONSE)
+
         else:
             await super().return_msg(_id, constants.BAD_RESPONSE)
+
+    def get(self, key):
+        v = self.db.get(key)
+        if v is None:
+            v = b''
+        return v
+
+    def flush(self):
+        it = self.db.iterkeys()
+        it.seek_to_first()
+
+        for key in list(it):
+            print(key)
+            self.db.delete(key)

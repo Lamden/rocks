@@ -54,7 +54,11 @@ class RocksDBClient:
         return res
 
     def get(self, key):
-        return self.server_call([constants.GET_COMMAND, key])
+        r = self.server_call([constants.GET_COMMAND, key])
+
+        if r == b'':
+            return None
+        return r
 
     def set(self, key, value):
         return self.server_call([constants.SET_COMMAND, key, value])
@@ -62,3 +66,11 @@ class RocksDBClient:
     def delete(self, key):
         return self.server_call([constants.DEL_COMMAND, key])
 
+    def seek(self, prefix):
+        return self.server_call([constants.SEEK_ITER_COMMAND, prefix])
+
+    def next(self):
+        return self.server_call([constants.NEXT_COMMAND])
+
+    def flush(self):
+        return self.server_call([constants.FLUSH_COMMAND])
