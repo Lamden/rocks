@@ -98,7 +98,6 @@ class RocksDBServer(MultipartRequestReplyService):
 
         elif command == constants.SET_COMMAND:
             k, v = msg[1:]
-            print(f'SET {k} to {v}')
             self.db.put(k, v)
             return constants.OK_RESPONSE
 
@@ -120,16 +119,13 @@ class RocksDBServer(MultipartRequestReplyService):
         elif command == constants.NEXT_COMMAND:
             try:
                 k = next(self.iterator)
-                print(f'next is {k}')
                 return k
             except StopIteration:
-                print('STOP ITERATION!')
                 return constants.STOP_ITER_RESPONSE
 
         # # #
 
         elif command == constants.FLUSH_COMMAND:
-            print('flush!')
             self.flush()
             return constants.OK_RESPONSE
 

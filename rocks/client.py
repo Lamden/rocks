@@ -4,7 +4,7 @@ import asyncio
 import zmq
 
 
-async def get(socket_id: services.SocketStruct,
+def get(socket_id: services.SocketStruct,
               msg: list,
               ctx: zmq.Context,
               timeout=500,
@@ -25,32 +25,26 @@ async def get(socket_id: services.SocketStruct,
         # Allow passing an existing socket to save time on initializing a _new one and waiting for connection.
         socket.connect(str(socket_id))
 
-        await socket.send_multipart(msg)
+        socket.send_multipart(msg)
 
-        event = await socket.poll(timeout=timeout, flags=zmq.POLLIN)
-        if event:
-            response = await socket.recv()
+        response = socket.recv()
 
-            socket.close()
+        socket.close()
 
-            return response
-        else:
-            socket.close()
-            return None
+        return response
 
     except Exception as e:
         socket.close()
-        return await get(socket_id, msg, ctx, timeout, linger, retries-1)
+        return get(socket_id, msg, ctx, timeout, linger, retries-1)
 
 
 class RocksDBClient:
-    def __init__(self, socket_id=constants.DEFAULT_SOCKET, ctx=constants.DEFAULT_ZMQ_CONTEXT):
+    def __init__(self, socket_id=constants.DEFAULT_SOCKET, ctx=zmq.Context()):
         self.socket = socket_id
         self.ctx = ctx
 
     def server_call(self, msg):
-        loop = asyncio.get_event_loop()
-        res = loop.run_until_complete(get(self.socket, msg, self.ctx))
+        res = get(self.socket, msg, self.ctx)
         return res
 
     def get(self, key):

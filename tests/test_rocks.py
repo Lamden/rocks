@@ -88,19 +88,6 @@ class TestRocksServer(TestCase):
         self.assertEqual(self.c.next(), b'test4')
         self.assertEqual(self.c.next(), b'test5')
 
-    def test_seek_all(self):
-        self.c.seek(b'')
-        print(self.c.next())
-        print(self.c.next())
-        print(self.c.next())
-        print(self.c.next())
-        print(self.c.next())
-        print(self.c.next())
-        print(self.c.next())
-        print(self.c.next())
-        print(self.c.next())
-        print(self.c.next())
-        print(self.c.next())
 
 class TestMultipartServer(TestCase):
     def setUp(self):
