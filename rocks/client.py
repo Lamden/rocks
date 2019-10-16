@@ -1,16 +1,15 @@
 from zcomm import services
 from rocks import constants
-import asyncio
 import zmq
 
 
 def get(socket_id: services.SocketStruct,
-              msg: list,
-              ctx: zmq.Context,
-              timeout=500,
-              linger=2000,
-              retries=10,
-              dealer=False):
+        msg: list,
+        ctx: zmq.Context,
+        timeout=500,
+        linger=2000,
+        retries=10,
+        dealer=False):
 
     if retries < 0:
         return None
@@ -22,7 +21,6 @@ def get(socket_id: services.SocketStruct,
 
     socket.setsockopt(zmq.LINGER, linger)
     try:
-        # Allow passing an existing socket to save time on initializing a _new one and waiting for connection.
         socket.connect(str(socket_id))
 
         socket.send_multipart(msg)

@@ -1,4 +1,5 @@
 from rocks.server import RocksDBServer
+from rocks.client import RocksDBClient
 from rocks import constants
 import asyncio
 import click
@@ -48,15 +49,12 @@ def serve(dir):
 
 @cli.command()
 @click.option('-k', '--key', type=str, required=True)
-@click.option('-d', '--dir', type=str)
-def get(key, dir):
-    f = dir or constants.DEFAULT_DIRECTORY
-
+def get(key):
     key = key.encode()
 
-    s = RocksDBServer(filename=f)
+    c = RocksDBClient()
 
-    v = s.db.get(key)
+    v = c.get(key)
     if v is not None:
         print(v.decode())
     else:
@@ -66,28 +64,22 @@ def get(key, dir):
 @cli.command()
 @click.option('-k', '--key', type=str, required=True)
 @click.option('-v', '--value', type=str, required=True)
-@click.option('-d', '--dir', type=str)
-def set(key, value, dir):
-    f = dir or constants.DEFAULT_DIRECTORY
-
+def set(key, value):
     key = key.encode()
     value = value.encode()
 
-    s = RocksDBServer(filename=f)
-    s.db.put(key, value)
+    c = RocksDBClient()
+    c.set(key, value)
     print('OK')
 
 
 @cli.command()
 @click.option('-k', '--key', type=str, required=True)
-@click.option('-d', '--dir', type=str)
-def delete(key, dir):
-    f = dir or constants.DEFAULT_DIRECTORY
-
+def delete(key):
     key = key.encode()
 
-    s = RocksDBServer(filename=f)
-    s.db.delete(key)
+    c = RocksDBClient()
+    c.delete(key)
     print('OK')
 
 
