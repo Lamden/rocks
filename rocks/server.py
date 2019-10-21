@@ -4,6 +4,7 @@ from rocks import constants
 import asyncio
 import zmq
 
+
 class MultipartRequestReplyService(services.RequestReplyService):
     async def serve(self):
         self.socket = self.ctx.socket(zmq.REP)
