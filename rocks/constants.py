@@ -25,6 +25,6 @@ STOP_ITER_RESPONSE = b'\x09'
 FLUSH_COMMAND = b'\x0a'
 
 DEFAULT_ZMQ_CONTEXT = zmq.asyncio.Context()
-DEFAULT_SOCKET = services._socket('tcp://127.0.0.1:11111')
+DEFAULT_SOCKET = services._socket('ipc:////tmp/rocks')
 
 DEFAULT_DIRECTORY = os.path.expanduser('~/rocks')

@@ -51,6 +51,7 @@ class MultiPartAsyncInbox(services.AsyncInbox):
                 event = await self.socket.poll(timeout=self.poll_timeout, flags=zmq.POLLIN)
                 if event:
                     message = await self.socket.recv_multipart()
+                    print(message)
                     asyncio.ensure_future(self.handle_msg(message[0], message[1:]))
 
             except zmq.error.ZMQError:
@@ -63,17 +64,17 @@ class MultiPartAsyncInbox(services.AsyncInbox):
         sent = False
         while not sent:
             try:
-                await self.socket.send_multipart([_id, msg])
+                await self.socket.send_multipart([_id, *msg])
                 sent = True
             except zmq.error.ZMQError:
                 self.socket.close()
                 self.setup_socket()
 
 
-class RocksDBServer(MultipartRequestReplyService):
+class RocksDBServer(MultiPartAsyncInbox):
     def __init__(self, filename: str,
                  options: rocksdb.Options=rocksdb.Options(create_if_missing=True),
-                 socket_id=services.SocketStruct(services.Protocols.TCP, '*', 11111),
+                 socket_id=services._socket('ipc:////tmp/rocks'),
                  ctx=constants.DEFAULT_ZMQ_CONTEXT,
                  linger=2000,
                  poll_timeout=50):
@@ -89,13 +90,16 @@ class RocksDBServer(MultipartRequestReplyService):
         self.iterator = self.db.iterkeys()
         self.iterator.seek_to_first()
 
-    def handle_msg(self, msg):
+    def handle_msg(self, _id, msg):
         command = msg[0]
 
+        print('woohoo')
+
         # BASIC COMMANDS #
+        msg = []
         if command == constants.GET_COMMAND:
             v = self.get(msg[1])
-            return v
+            msg.append(v)
 
         elif command == constants.SET_COMMAND:
             k, v = msg[1:]
@@ -132,6 +136,8 @@ class RocksDBServer(MultipartRequestReplyService):
 
         else:
             return constants.BAD_RESPONSE
+
+        super().handle_msg(_id, msg)
 
     def get(self, key):
         v = self.db.get(key)
