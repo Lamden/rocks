@@ -122,4 +122,4 @@ class TestMultipartServer(TestCase):
         loop = asyncio.get_event_loop()
         res = loop.run_until_complete(tasks)
 
-        # self.assertEqual(res[1], b'howdy')
+        self.assertEqual(res[1], b'howdy')

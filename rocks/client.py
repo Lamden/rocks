@@ -19,13 +19,9 @@ def get(socket_id: services.SocketStruct,
     try:
         socket.connect(str(socket_id))
 
-        print(f'sending {msg}')
-
         socket.send_multipart(msg)
 
         response = socket.recv_multipart()
-
-        print(f'got {response}')
 
         socket.close()
 
@@ -53,7 +49,6 @@ class RocksDBClient:
         return r
 
     def set(self, key, value):
-        print(key, value)
         return self.server_call([constants.SET_COMMAND, key, value])
 
     def delete(self, key):

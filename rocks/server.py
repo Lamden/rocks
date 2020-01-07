@@ -51,7 +51,6 @@ class MultiPartAsyncInbox(services.AsyncInbox):
                 event = await self.socket.poll(timeout=self.poll_timeout, flags=zmq.POLLIN)
                 if event:
                     message = await self.socket.recv_multipart()
-                    print(f'got {message}')
                     asyncio.ensure_future(self.handle_msg(message[0], message[1:]))
 
             except zmq.error.ZMQError:
@@ -65,7 +64,6 @@ class MultiPartAsyncInbox(services.AsyncInbox):
         while not sent:
             try:
                 await self.socket.send_multipart([_id, *msg])
-                print('sent')
                 sent = True
             except zmq.error.ZMQError:
                 self.socket.close()
@@ -102,7 +100,6 @@ class RocksDBServer(MultiPartAsyncInbox):
 
         elif command == constants.SET_COMMAND:
             k, v = msg[1:]
-            print(k, v)
             self.db.put(k, v)
             m.append(constants.OK_RESPONSE)
 
@@ -137,8 +134,7 @@ class RocksDBServer(MultiPartAsyncInbox):
         else:
             m.append(constants.BAD_RESPONSE)
 
-        print(f'returning {_id}, {m}')
-        await self.return_msg(_id, m)
+        asyncio.ensure_future(self.return_msg(_id, m))
 
     def get(self, key):
         v = self.db.get(key)
