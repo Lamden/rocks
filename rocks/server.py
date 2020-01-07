@@ -92,7 +92,6 @@ class RocksDBServer(MultiPartAsyncInbox):
         self.iterator.seek_to_first()
 
     async def handle_msg(self, _id, msg):
-        msg.pop(0)
         command = msg[0]
 
         # BASIC COMMANDS #

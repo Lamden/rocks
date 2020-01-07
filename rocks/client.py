@@ -29,7 +29,7 @@ def get(socket_id: services.SocketStruct,
 
         socket.close()
 
-        return response
+        return response[0]
 
     except Exception as e:
         socket.close()
