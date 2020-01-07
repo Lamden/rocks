@@ -15,10 +15,11 @@ async def stop_server(s, timeout):
 class TestRocksServer(TestCase):
     def setUp(self):
         self.c = RocksDBClient()
-        self.c.flush()
+        #self.c.flush()
 
     def tearDown(self):
-        self.c.flush()
+        #self.c.flush()
+        pass
 
     def test_flush_works(self):
 

@@ -51,7 +51,7 @@ class MultiPartAsyncInbox(services.AsyncInbox):
                 event = await self.socket.poll(timeout=self.poll_timeout, flags=zmq.POLLIN)
                 if event:
                     message = await self.socket.recv_multipart()
-                    print(message)
+                    print(f'got {message}')
                     asyncio.ensure_future(self.handle_msg(message[0], message[1:]))
 
             except zmq.error.ZMQError:
@@ -65,6 +65,7 @@ class MultiPartAsyncInbox(services.AsyncInbox):
         while not sent:
             try:
                 await self.socket.send_multipart([_id, *msg])
+                print('sent')
                 sent = True
             except zmq.error.ZMQError:
                 self.socket.close()
@@ -90,26 +91,26 @@ class RocksDBServer(MultiPartAsyncInbox):
         self.iterator = self.db.iterkeys()
         self.iterator.seek_to_first()
 
-    def handle_msg(self, _id, msg):
+    async def handle_msg(self, _id, msg):
+        msg.pop(0)
         command = msg[0]
 
-        print('woohoo')
-
         # BASIC COMMANDS #
-        msg = []
+        m = []
         if command == constants.GET_COMMAND:
             v = self.get(msg[1])
-            msg.append(v)
+            m.append(v)
 
         elif command == constants.SET_COMMAND:
             k, v = msg[1:]
+            print(k, v)
             self.db.put(k, v)
-            return constants.OK_RESPONSE
+            m.append(constants.OK_RESPONSE)
 
         elif command == constants.DEL_COMMAND:
             self.db.delete(msg[1])
             self.db.get(msg[1])
-            return constants.OK_RESPONSE
+            m.append(constants.OK_RESPONSE)
 
         # # #
 
@@ -119,25 +120,26 @@ class RocksDBServer(MultiPartAsyncInbox):
             self.prefix = p
             self.iterator = self.db.iterkeys()
             self.iterator.seek(p)
-            return constants.OK_RESPONSE
+            m.append(constants.OK_RESPONSE)
 
         elif command == constants.NEXT_COMMAND:
             try:
                 k = next(self.iterator)
-                return k
+                m.append(k)
             except StopIteration:
-                return constants.STOP_ITER_RESPONSE
+                m.append(constants.STOP_ITER_RESPONSE)
 
         # # #
 
         elif command == constants.FLUSH_COMMAND:
             self.flush()
-            return constants.OK_RESPONSE
+            m.append(constants.OK_RESPONSE)
 
         else:
-            return constants.BAD_RESPONSE
+            m.append(constants.BAD_RESPONSE)
 
-        super().handle_msg(_id, msg)
+        print(f'returning {_id}, {m}')
+        await self.return_msg(_id, m)
 
     def get(self, key):
         v = self.db.get(key)

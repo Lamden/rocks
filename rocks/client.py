@@ -8,24 +8,24 @@ def get(socket_id: services.SocketStruct,
         ctx: zmq.Context,
         timeout=500,
         linger=2000,
-        retries=10,
-        dealer=False):
+        retries=10):
 
     if retries < 0:
         return None
 
-    if dealer:
-        socket = ctx.socket(zmq.DEALER)
-    else:
-        socket = ctx.socket(zmq.REQ)
+    socket = ctx.socket(zmq.DEALER)
 
     socket.setsockopt(zmq.LINGER, linger)
     try:
         socket.connect(str(socket_id))
 
+        print(f'sending {msg}')
+
         socket.send_multipart(msg)
 
-        response = socket.recv()
+        response = socket.recv_multipart()
+
+        print(f'got {response}')
 
         socket.close()
 
@@ -53,6 +53,7 @@ class RocksDBClient:
         return r
 
     def set(self, key, value):
+        print(key, value)
         return self.server_call([constants.SET_COMMAND, key, value])
 
     def delete(self, key):
