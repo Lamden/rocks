@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='rocks',
-    version='0.1.4',
+    version='0.1.5',
     packages=['rocks'],
     url='https://www.github.com/Lamden/rocks',
     license='GPL3',
