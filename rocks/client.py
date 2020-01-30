@@ -3,39 +3,37 @@ from rocks import constants
 import zmq
 
 
+class RocksServerOfflineError(Exception):
+    pass
+
+
 def get(socket_id: services.SocketStruct,
         msg: list,
         ctx: zmq.Context,
-        timeout=500,
-        linger=2000,
-        retries=10):
-
-    if retries < 0:
-        return None
+        timeout=100,
+        linger=20):
 
     socket = ctx.socket(zmq.DEALER)
 
     socket.setsockopt(zmq.LINGER, linger)
-    try:
-        socket.connect(str(socket_id))
-
-        socket.send_multipart(msg)
-
+    socket.connect(str(socket_id))
+    socket.send_multipart(msg)
+    event = socket.poll(timeout=timeout, flags=zmq.POLLIN)
+    if event:
         response = socket.recv_multipart()
 
         socket.close()
 
         return response[0]
-
-    except Exception as e:
-        socket.close()
-        return get(socket_id, msg, ctx, timeout, linger, retries-1)
+    raise RocksServerOfflineError
 
 
 class RocksDBClient:
     def __init__(self, socket_id=constants.DEFAULT_SOCKET, ctx=zmq.Context()):
         self.socket = socket_id
         self.ctx = ctx
+
+        self.server_call([constants.PING_COMMAND])
 
     def server_call(self, msg):
         res = get(self.socket, msg, self.ctx)

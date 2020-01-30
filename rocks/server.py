@@ -131,6 +131,9 @@ class RocksDBServer(MultiPartAsyncInbox):
             self.flush()
             m.append(constants.OK_RESPONSE)
 
+        elif command == constants.PING_COMMAND:
+            m.append(constants.OK_RESPONSE)
+
         else:
             m.append(constants.BAD_RESPONSE)
 

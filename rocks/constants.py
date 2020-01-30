@@ -24,6 +24,8 @@ STOP_ITER_RESPONSE = b'\x09'
 
 FLUSH_COMMAND = b'\x0a'
 
+PING_COMMAND = b'\x0b'
+
 DEFAULT_ZMQ_CONTEXT = zmq.asyncio.Context()
 DEFAULT_SOCKET = services._socket('ipc:////tmp/rocks')
 
