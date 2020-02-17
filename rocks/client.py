@@ -33,9 +33,13 @@ class RocksDBClient:
         self.socket = socket_id
         self.ctx = ctx
 
-        self.server_call([constants.PING_COMMAND])
+        self.pinged = False
 
     def server_call(self, msg):
+        if not self.pinged:
+            get(self.socket, [constants.PING_COMMAND], self.ctx)
+            self.pinged = True
+
         res = get(self.socket, msg, self.ctx)
         return res
 
