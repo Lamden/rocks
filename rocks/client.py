@@ -64,3 +64,6 @@ class RocksDBClient:
 
     def flush(self):
         return self.server_call([constants.FLUSH_COMMAND])
+
+    def ping(self):
+        self.server_call([constants.PING_COMMAND])
