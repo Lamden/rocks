@@ -14,5 +14,5 @@ setup(
         [console_scripts]
         rocks=rocks.__main__:cli
     ''',
-    install_requires=['zcomm', 'pyzmq', 'python-rocksdb', 'Click']
+    install_requires=['zcomm', 'pyzmq', 'python-rocksdb']
 )

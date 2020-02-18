@@ -2,7 +2,8 @@ from rocks.server import RocksDBServer
 from rocks.client import RocksDBClient
 from rocks import constants
 import asyncio
-import click
+
+import argparse
 
 
 def print_logo():
@@ -29,58 +30,51 @@ def print_logo():
     ''')
 
 
-@click.group()
 def cli():
-    pass
+    parser = argparse.ArgumentParser(description="Rocks Commands", prog='rocks')
+    parser.add_argument('command', type=str)
 
+    parser.add_argument('-k', '--key', type=str)
+    parser.add_argument('-v', '--value', type=str)
+    parser.add_argument('-d', '--dir', type=str, default=None)
 
-@cli.command()
-@click.option('-d', '--dir', type=str)
-def serve(dir):
-    f = dir or constants.DEFAULT_DIRECTORY
+    args = parser.parse_args()
 
-    s = RocksDBServer(filename=f)
+    if args.command == 'serve':
+        print('Serving Rocks...')
+        f = args.dir or constants.DEFAULT_DIRECTORY
 
-    print_logo()
+        s = RocksDBServer(filename=f)
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(s.serve())
+        print_logo()
 
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(s.serve())
+    elif args.command == 'get':
+        key = args.key.encode()
 
-@cli.command()
-@click.option('-k', '--key', type=str, required=True)
-def get(key):
-    key = key.encode()
+        c = RocksDBClient()
 
-    c = RocksDBClient()
+        v = c.get(key)
+        if v is not None:
+            print(v.decode())
+        else:
+            print(v)
+    elif args.command == 'set':
+        key = args.key.encode()
+        value = args.value.encode()
 
-    v = c.get(key)
-    if v is not None:
-        print(v.decode())
+        c = RocksDBClient()
+        c.set(key, value)
+        print('OK')
+    elif args.command == 'delete':
+        key = args.key.encode()
+
+        c = RocksDBClient()
+        c.delete(key)
+        print('OK')
     else:
-        print(v)
-
-
-@cli.command()
-@click.option('-k', '--key', type=str, required=True)
-@click.option('-v', '--value', type=str, required=True)
-def set(key, value):
-    key = key.encode()
-    value = value.encode()
-
-    c = RocksDBClient()
-    c.set(key, value)
-    print('OK')
-
-
-@cli.command()
-@click.option('-k', '--key', type=str, required=True)
-def delete(key):
-    key = key.encode()
-
-    c = RocksDBClient()
-    c.delete(key)
-    print('OK')
+        print('Unsupported command: {}'.format(args.command))
 
 
 if __name__ == '__main__':
